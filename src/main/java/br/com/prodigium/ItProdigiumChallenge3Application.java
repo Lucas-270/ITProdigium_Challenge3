@@ -7,7 +7,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 
 @SpringBootApplication
-public class ItProdigiumChallenge3Application {
+public class ItProdigiumChallenge3Application extends SpringBootServletInitializer {
 
 	public static void main(String[] args) {
 		SpringApplication.run(ItProdigiumChallenge3Application.class, args);
