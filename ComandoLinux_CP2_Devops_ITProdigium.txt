@@ -1,0 +1,5 @@
+sudo usermod -a -G tomcat jenkins
+
+Dentro do root:
+chmod 770 /opt/tomcat
+chmod 770 /opt/tomcat/webapps

@@ -1,0 +1,52 @@
+pipeline {
+    agent any
+    
+    stages {
+        stage('Repositório') {
+            steps{
+                checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/Lucas-270/ITProdigium_Challenge3']]])
+            } 
+        }
+        stage('Build') {
+            steps{
+                script{
+                    withSonarQubeEnv('SonarQube') {
+                        sh '/opt/maven/bin/mvn clean package sonar:sonar'
+                    }
+                }
+            }
+        }
+        stage("Quality Gate") { 
+            steps{
+                script{
+                    timeout(time: 45, unit: 'MINUTES') { 
+                        echo "Testando o código..."
+                        def qualityGate = waitForQualityGate() 
+                        if (qualityGate.status != 'OK') {
+                            error "O código não está de acordo com as regras do Sonar: ${qualityGate.status}"
+                        }
+                    }
+                }
+            }
+        }
+        stage('Responsável pela aprovação') {
+            steps {
+                script {
+                    timeout(time: 2, unit: "HOURS") {
+                        def userInput = input(
+                            id: 'userInput', message: 'Aprova o Deploy ?', parameters: [
+                            [$class: 'TextParameterDefinition', defaultValue: 'Não', description: 'Realizar Deploy ?', name: 'Executar'] ] )
+                        echo (userInput)
+                        if (userInput == 'Sim'){
+                            echo 'Realizando deploy da aplicação...'
+                            sh 'cp ./target/Challenge-API.war /opt/tomcat/webapps/Challenge-API.war'
+                            echo 'Deploy feito com sucesso!'
+                        } else {
+                            error "O deploy foi cancelado"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
